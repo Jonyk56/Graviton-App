@@ -7,7 +7,7 @@
 	"type": "iconpack",
 	"icons": {
 		"cpp": { 
-			"icon":"./icons/file_type_cpp.svg"
+			"icon":"./icons/cpp.lang.svg"
 		},
 		"ts": {
 			"icon": "./icons/ts.lang.svg"
