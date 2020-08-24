@@ -18,6 +18,9 @@
 		"json": {
 			"icon": "./icons/json.lang.svg"
 		},
+		"tsx": {
+			"icon": "./icons/tsx.lang.svg"
+		},
 		"jsx": {
 			"icon": "./icons/jsx.lang.svg"
 		},

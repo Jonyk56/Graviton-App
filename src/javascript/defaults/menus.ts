@@ -1,5 +1,4 @@
-import { Panel, removePanel } from '../constructors/panel'
-import { openFolder, openFile } from '../utils/filesystem.ts'
+import { openFolder, openFile } from '../utils/filesystem'
 import Menu from '../constructors/menu'
 import Settings from './windows/settings'
 import Store from './windows/store'
@@ -8,20 +7,20 @@ import RunningConfig from 'RunningConfig'
 import StaticConfig from 'StaticConfig'
 import About from './dialogs/about'
 import Notification from '../constructors/notification'
-import Dialog from '../constructors/dialog'
-import SidePanel from '../constructors/side.panel'
-import Play from '../components/icons/play'
-import EnvClient from '../constructors/env.client'
 import openDebugClient from './debug.window'
-import packageJSON from '../../../package.json'
+import packageJSON from 'Root/package.json'
 const { openExternal: openLink } = window.require('electron').shell
 const { getCurrentWindow } = window.require('electron').remote
 import checkForUpdates from '../utils/check.updates'
+import AppPlatform from 'AppPlatform'
 
 /*
  * This creates the default Graviton Menus in the top bar
  */
 function createMenus() {
+	if (AppPlatform === 'darwin') {
+		getHelpMenu('Graviton')
+	}
 	new Menu({
 		//FILE
 		button: 'menus.File.File',
@@ -258,9 +257,15 @@ function createMenus() {
 			},
 		],
 	})
+	if (AppPlatform !== 'darwin') {
+		getHelpMenu('menus.Help.Help')
+	}
+}
+
+function getHelpMenu(button) {
 	new Menu({
 		//HELP
-		button: 'menus.Help.Help',
+		button,
 		list: [
 			{
 				label: 'menus.Help.Contact',
@@ -347,69 +352,6 @@ function createMenus() {
 			},
 		],
 	})
-	if (RunningConfig.data.isDev) {
-		new Menu({
-			//HELP
-			button: 'Dev',
-			list: [
-				{
-					label: 'Notification test',
-					action: () => {
-						new Notification({
-							title: 'Notification',
-							content: 'Notification body',
-							buttons: [
-								{
-									label: 'Button 1',
-									action() {
-										console.log('Clicked button 1')
-									},
-								},
-								{
-									label: 'Button 2',
-									action() {
-										console.log('Clicked button 2')
-									},
-								},
-							],
-						})
-					},
-				},
-				{
-					label: 'Dialog test',
-					action: () => {
-						const testDialog = new Dialog({
-							title: 'Title',
-							content: 'Dialog body',
-							buttons: [
-								{
-									label: 'Button 1',
-									action() {
-										console.log('Clicked button 1')
-									},
-								},
-								{
-									label: 'Button 2',
-									action() {
-										console.log('Clicked button 2')
-									},
-								},
-							],
-						})
-						testDialog.launch()
-					},
-				},
-				{
-					label: 'Env client test',
-					action() {
-						new EnvClient({
-							name: 'Test',
-						})
-					},
-				},
-			],
-		})
-	}
 }
 
 export default createMenus

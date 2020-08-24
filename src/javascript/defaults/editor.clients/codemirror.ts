@@ -2,13 +2,11 @@ import CodeMirror from 'codemirror'
 import emmet from '@emmetio/codemirror-plugin'
 import { state } from '@mkenzo_8/puffin'
 import { EditorClient } from '../../constructors/editorclient'
-import ContextMenu from '../../constructors/contextmenu'
 import StaticConfig from 'StaticConfig'
 import RunningConfig from 'RunningConfig'
-import normalizeDir from '../../utils/directory.normalizer'
-import beautifyDir from '../../utils/directory.beautifier'
 
 import 'lsp-codemirror/lib/codemirror-lsp.css'
+import 'lsp-codemirror/lib/icons/rect.svg'
 
 import { LspWsConnection, CodeMirrorAdapter } from 'lsp-codemirror'
 
@@ -177,6 +175,11 @@ const CodemirrorClient = new EditorClient(
 						fancy: 'Slim',
 						name: 'application/x-slim',
 					}
+				case 'go':
+					return {
+						fancy: 'Go',
+						name: 'text/x-go',
+					}
 				default:
 					return {
 						name: extension,
@@ -248,17 +251,17 @@ const CodemirrorClient = new EditorClient(
 				event.preventDefault()
 			})
 			CodemirrorEditor.refresh()
-			let lspServer
-			switch (language.fancy) {
-				case 'typescript':
-					lspServer = `ws://localhost:${RunningConfig.data.isDev ? 2020 : 2089}/typescript`
-					break
-				case 'javascript':
-					lspServer = `ws://localhost:${RunningConfig.data.isDev ? 2020 : 2089}/javascript`
-					break
-			}
+			let lspServer: string
 			let lspAdapter
 			let lspConnection
+			switch (language.fancy) {
+				case 'typescript':
+					lspServer = `ws://localhost:${RunningConfig.data.LSPPort}/typescript`
+					break
+				case 'javascript':
+					lspServer = `ws://localhost:${RunningConfig.data.LSPPort}/javascript`
+					break
+			}
 			if (lspServer && StaticConfig.data.editorAutocomplete) {
 				const lspClient = createLspClient({
 					lspServer,
@@ -270,7 +273,7 @@ const CodemirrorClient = new EditorClient(
 				lspConnection = lspClient.lspConnection
 			}
 
-			StaticConfig.keyChanged('editorAutocomplete', value => {
+			StaticConfig.keyChanged('editorAutocomplete', (value: string) => {
 				if (value) {
 					const lspClient = createLspClient({
 						lspServer,
@@ -288,6 +291,8 @@ const CodemirrorClient = new EditorClient(
 				}
 			})
 
+			handleCMAutocomplete(CodemirrorEditor, language)
+
 			return {
 				instance: CodemirrorEditor,
 			}
@@ -302,7 +307,7 @@ const CodemirrorClient = new EditorClient(
 			return instance.getSelection()
 		},
 		setIndentation({ instance, indentation }) {
-			instance.setOption('indentWithTabs', StaticConfig.data.editorIndentation == 'tab')
+			instance.setOption('indentWithTabs', indentation === 'tab')
 		},
 		doRefresh({ instance }) {
 			setTimeout(function () {
@@ -369,7 +374,7 @@ const CodemirrorClient = new EditorClient(
 		setFontSize({ instance, element, fontSize }) {
 			element.getElementsByClassName('Codemirror')[0].style.fontSize = fontSize
 			instance.refresh()
-			//instance.scrollIntoView()
+			instance.scrollIntoView()
 		},
 		getCursorPosition({ instance }) {
 			const { line, ch } = instance.getCursor()
@@ -419,7 +424,6 @@ const CodemirrorClient = new EditorClient(
 function createLspClient({ lspServer, language, directory, CodemirrorEditor }) {
 	const fileUri = directory.replace(/\\/gm, '/')
 	const folderUrl = path.dirname(fileUri)
-	console.log(folderUrl.replace(/\/\//gm, '/'), fileUri.replace(/\/\//gm, '/'))
 	const lspConnection = new LspWsConnection({
 		serverUri: lspServer,
 		languageId: language.fancy,
@@ -442,6 +446,21 @@ function createLspClient({ lspServer, language, directory, CodemirrorEditor }) {
 	return {
 		lspConnection,
 		lspAdapter,
+	}
+}
+
+function handleCMAutocomplete(CodemirrorEditor, { fancy }): void {
+	if (fancy === 'html') {
+		CodemirrorEditor.on('change', (cm, change) => {
+			const location = CodemirrorEditor.getDoc().getCursor('end')
+			const line = CodemirrorEditor.getLine(location.line)
+			const typedCharacter = line[location.ch - 1]
+			if (typedCharacter == '<') {
+				CodeMirror.commands.autocomplete(CodemirrorEditor, null, {
+					completeSingle: false,
+				})
+			}
+		})
 	}
 }
 

@@ -18,6 +18,7 @@ import { EditorClient } from '../constructors/editorclient'
 import EnvClient from '../constructors/env.client'
 import SidePanel from '../constructors/side.panel'
 import Explorer from '../constructors/explorer'
+import FilesExplorer from '../constructors/files.explorer'
 import throwError from './throw.error'
 import path from 'path'
 import fs from 'fs-extra'
@@ -25,6 +26,7 @@ import isDev from 'electron-is-dev'
 import { pluginsIternalDir, pluginsExternalDir } from 'Constants'
 
 const getPlugin = (pluginPath: string) => window.require(pluginPath)
+const isTesting: boolean = require('electron').remote.process.env.NODE_ENV === 'test'
 
 function loadMainFile({ mainDev, main, name, type, PATH }) {
 	if (main) {
@@ -56,6 +58,7 @@ function loadMainFile({ mainDev, main, name, type, PATH }) {
 				Explorer,
 				CommandPrompt,
 				Editor,
+				FilesExplorer,
 			}
 			if (!isDev) {
 				try {
@@ -106,7 +109,7 @@ const registerPluginsIn = where => {
 
 RunningConfig.on('appLoaded', async function () {
 	await registerPluginsIn(pluginsIternalDir)
-	await registerPluginsIn(pluginsExternalDir)
+	if (!isTesting) await registerPluginsIn(pluginsExternalDir)
 	loadAllPlugins()
 	RunningConfig.emit('allPluginsLoaded')
 })

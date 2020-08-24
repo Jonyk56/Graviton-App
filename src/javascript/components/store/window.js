@@ -5,7 +5,7 @@ import { css as style } from 'emotion'
 import { Titles, Card, Button, Text } from '@mkenzo_8/puffin-drac'
 import { LanguageState, getTranslation } from 'LanguageConfig'
 import SideMenu from '../window/side.menu'
-import installPlugin from '../../defaults/store/utils/install.plugin'
+import { installPluginFromURL } from '../../defaults/store/utils/install.plugin'
 import uninstallPlugin from '../../defaults/store/utils/uninstall.plugin'
 import Window from '../../constructors/window'
 import storeButton from './button'
@@ -70,14 +70,14 @@ function pluginWindow(
 	const haveRelease = lastReleaseVersion !== 'Unknown'
 	const component = element({
 		components: {
-			H2: Titles.h2,
+			H1: Titles.h1,
 			SideMenu,
 			Text,
 		},
 	})`
 		<SideMenu default="about">
 			<div>
-				<H2>${getPluginInfo(pluginInfoValid, 'name')}</H2>
+				<H1>${getPluginInfo(pluginInfoValid, 'name')}</H1>
 				<label to="about" lang-string="misc.About"/>
 			</div>
 			<div class="${styleWrapper}">
@@ -140,7 +140,7 @@ function pluginWindow(
 		}
 	}
 	function update() {
-		installPlugin({
+		installPluginFromURL({
 			id: pluginInfoValid.id,
 			release: pluginCompatibleRelease.url,
 		}).then(() => {
@@ -148,7 +148,7 @@ function pluginWindow(
 		})
 	}
 	function install() {
-		installPlugin({
+		installPluginFromURL({
 			id: pluginInfoValid.id,
 			release: pluginCompatibleRelease.url,
 		}).then(() => {

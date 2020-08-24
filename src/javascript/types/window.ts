@@ -1,3 +1,5 @@
+import { PuffinEventInstance } from './puffin.state'
+
 interface WindowOptions {
 	title?: string
 	component: object
@@ -11,7 +13,7 @@ interface WindowOptions {
 interface WindowInstance {
 	launch: () => void
 	close: () => void
-	on: (string, any) => void
+	on: (eventName: string, eventData: any) => PuffinEventInstance
 }
 
 export { WindowOptions, WindowInstance }

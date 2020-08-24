@@ -17,10 +17,18 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Installing dependencies
       run: |
-        npm install
+        npm i
+    - name: Building UI
+      run: |
+        npm run script:build
+        npm run build:webpack
+    - name: Running unit tests
+      uses: GabrielBB/xvfb-action@v1.2
+      with:
+        run: npm run test:mocha
     - name : Building
       run: |
-        npm run build 
+        npm run build:electron
       env:
         CI: true
         GH_TOKEN: ${{ secrets.GH_TOKEN }}

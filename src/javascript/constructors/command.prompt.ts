@@ -2,8 +2,8 @@ import { state, render, element } from '@mkenzo_8/puffin'
 import CommandPromptBody from '../components/command.prompt/command.prompt'
 import WindowBackground from '../components/window/background'
 
-import PuffinState from '../types/puffin.state'
-import { CommandPromptOptions } from '../types/command.prompt'
+import { PuffinState } from 'Types/puffin.state'
+import { CommandPromptOptions } from 'Types/command.prompt'
 
 class CommandPrompt {
 	private CPName: String
@@ -14,6 +14,7 @@ class CommandPrompt {
 	private CPOptions: any[]
 	private CPOptionsElement: HTMLElement
 	private CPInputValue: String
+	private CPDefaultOption: number
 
 	private _selectOption(option) {
 		if (option) {
@@ -31,7 +32,7 @@ class CommandPrompt {
 	private _renderOptions(options) {
 		const self = this
 		let content = ''
-		let hoveredDefault = 0
+		let hoveredDefault = this.CPDefaultOption
 
 		const optionsComp = element`
 			<div>
@@ -98,6 +99,7 @@ class CommandPrompt {
 		onCompleted = x => {},
 		onSelected = x => {},
 		onScrolled = x => {},
+		defaultOption = 0,
 	}: CommandPromptOptions) {
 		const finalName = `${name}_cp`
 		if (document.getElementById(finalName)) return // Check if there are any command prompts already opened
@@ -113,6 +115,7 @@ class CommandPrompt {
 		})
 		this.CPOptions = options
 		this.CPInputValue = ''
+		this.CPDefaultOption = defaultOption
 
 		const configArguments = arguments[0]
 

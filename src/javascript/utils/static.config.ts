@@ -5,7 +5,7 @@ const cachedConfiguration = getConfiguration()
 import RunningConfig from 'RunningConfig'
 import PluginsRegistry from 'PluginsRegistry'
 const path = require('path')
-import PuffinState from '../types/puffin.state'
+import { PuffinState } from 'Types/puffin.state'
 
 function saveConfiguration() {
 	cachedConfiguration.store.set('config', StaticConfig.data)
@@ -13,8 +13,8 @@ function saveConfiguration() {
 
 const StaticConfig: PuffinState = new state(Object.assign({}, cachedConfiguration.config))
 
-StaticConfig.changed((a, b) => {
-	if (!RunningConfig.data.currentStaticConfig.hasOwnProperty(b) && !RunningConfig.data.isDebug) {
+StaticConfig.changed((data, keyName) => {
+	if (!RunningConfig.data.currentStaticConfig.hasOwnProperty(keyName) && !RunningConfig.data.isDebug) {
 		saveConfiguration()
 	}
 })
@@ -44,6 +44,9 @@ function setIconpack(value) {
 		switch (type) {
 			case 'fileformat':
 				RunningConfig.data.iconpack[`${iconItem}.lang`] = path.join(pluginPath, icon)
+				break
+			case 'filetype':
+				RunningConfig.data.iconpack[`${iconItem}.type`] = path.join(pluginPath, icon)
 				break
 			case 'filename':
 				RunningConfig.data.iconpack[`file.${iconItem}`] = path.join(pluginPath, icon)
@@ -84,7 +87,5 @@ function setFontFamily(value) {
 
 webFrame.setZoomFactor(StaticConfig.data.appZoom)
 setFontFamily(StaticConfig.data.editorFontFamily)
-
-console.log(StaticConfig)
 
 export default StaticConfig

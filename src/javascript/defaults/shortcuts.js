@@ -11,6 +11,7 @@ import Settings from './windows/settings'
 import Welcome from './windows/welcome'
 import Store from './windows/store'
 import path from 'path'
+const { remote } = window.require('electron')
 
 RunningConfig.on('command.saveCurrentFile', () => {
 	RunningConfig.data.focusedTab && RunningConfig.data.focusedTab.state.emit('savedMe')
@@ -216,26 +217,56 @@ RunningConfig.on('command.openEditorCommandPrompt', () => {
 		],
 	})
 })
+
+let openedTabsList = []
+
+RunningConfig.on('aTabHasBeenCreated', ({ tabElement }) => {
+	openedTabsList.push({
+		element: tabElement,
+		title: tabElement.state.data.title,
+	})
+})
+
+RunningConfig.on('aTabHasBeenClosed', ({ tabElement }) => {
+	openedTabsList.splice(getTabIndex(tabElement), 1)
+})
+
+const getTabIndex = element => {
+	let i = null
+	openedTabsList.find((tab, index) => {
+		if (tab.element == element) i = index
+	})
+	return i
+}
+
 RunningConfig.on('command.openCurrentPanelTabsIterator', () => {
 	if (RunningConfig.data.focusedTab) {
-		const focusedPanelTabs = RunningConfig.data.focusedTab.getPanelTabs()
+		const focusedTabData = {
+			element: RunningConfig.data.focusedTab,
+			title: RunningConfig.data.focusedTab.state.data.title,
+		}
+
+		const focusedTabIndex = getTabIndex(RunningConfig.data.focusedTab)
+		openedTabsList.splice(focusedTabIndex, 1)
+		openedTabsList.unshift(focusedTabData)
+
 		new CommandPrompt({
 			name: 'tab_switcher',
 			showInput: false,
 			scrollOnTab: true,
 			closeOnKeyUp: true,
-			inputPlaceHolder: 'Enter a command',
+			defaultOption: openedTabsList.length > 1 ? 1 : 0,
 			options: [
-				...focusedPanelTabs.map(tab => {
+				...openedTabsList.map(tab => {
 					return {
-						data: tab.filePath,
-						label: tab.fileName,
+						data: tab.element,
+						label: tab.title,
 					}
 				}),
 			],
 			onSelected(res) {
-				const toFocusTab = focusedPanelTabs.find(tab => {
-					return tab.filePath == res.data
+				const toFocusTab = openedTabsList.find(tab => {
+					return tab.element == res.data
 				})
 				toFocusTab && toFocusTab.element.state.emit('focusedMe')
 			},
@@ -256,6 +287,16 @@ RunningConfig.on('command.closeCurrentWindow', () => {
 	if (windows.length == 0 || !methods) return
 	if (methods.closeWindow) methods.closeWindow()
 })
+
+RunningConfig.on('command.closeApp', () => {
+	RunningConfig.emit('checkAllTabsAreSaved', {
+		whenContinue() {
+			const electronWindow = remote.getCurrentWindow()
+			electronWindow.close()
+		},
+	})
+})
+
 const appShortCuts = new Shortcuts()
 appShortCuts.add([
 	...StaticConfig.data.appShortcuts.SaveCurrentFile.combos.map(shortcut => {
@@ -322,6 +363,12 @@ appShortCuts.add([
 		return {
 			shortcut: shortcut,
 			handler: event => RunningConfig.emit('command.closeCurrentWindow'),
+		}
+	}),
+	...StaticConfig.data.appShortcuts.CloseApp.combos.map(shortcut => {
+		return {
+			shortcut: shortcut,
+			handler: event => RunningConfig.emit('command.closeApp'),
 		}
 	}),
 ])

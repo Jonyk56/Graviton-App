@@ -2,6 +2,7 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const WebpackMessages = require('webpack-messages')
+const WebpackBar = require('webpackbar')
 
 module.exports = {
 	mode: 'production',
@@ -12,9 +13,12 @@ module.exports = {
 		index: './src/javascript/main.ts',
 	},
 	plugins: [
+		new WebpackBar({
+			name: 'User interface',
+		}),
 		new WebpackMessages({
 			name: 'Graviton',
-			logger: str => console.log(`--> ${str}`),
+			logger: str => console.log(`[webpack] --> ${str}`),
 		}),
 		new HtmlWebpackPlugin({
 			title: 'Graviton',
@@ -84,6 +88,11 @@ module.exports = {
 			AppPlatform: path.resolve(__dirname, './src/javascript/utils/platform.ts'),
 			Constants: path.resolve(__dirname, './src/javascript/defaults/constants.ts'),
 			StaticPlugins: path.resolve(__dirname, './plugins/static'),
+			Types: path.resolve(__dirname, './src/javascript/types'),
+			Constructors: path.resolve(__dirname, './src/javascript/constructors'),
+			Components: path.resolve(__dirname, './src/javascript/components'),
+			Assets: path.resolve(__dirname, './assets'),
+			Root: __dirname,
 		},
 	},
 	target: 'electron-renderer',

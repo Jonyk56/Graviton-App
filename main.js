@@ -16,6 +16,7 @@ app.on('ready', function () {
 		defaultWidth: 800,
 		defaultHeight: 600,
 	})
+
 	main = new BrowserWindow({
 		webPreferences: {
 			nativeWindowOpen: true,
@@ -39,7 +40,6 @@ app.on('ready', function () {
 	mainWindowState.manage(main)
 	if (isDev) {
 		main.loadURL('http://localhost:9000')
-		main.argv = process.argv.splice(4)
 		main.webContents.openDevTools()
 	} else {
 		main.removeMenu()
@@ -50,9 +50,7 @@ app.on('ready', function () {
 				slashes: true,
 			}),
 		)
-		main.argv = process.argv.splice(1)
 	}
-	main.isDebug = false
 	main.on('ready-to-show', () => {
 		mainWindowState.manage(main)
 		main.show()
@@ -88,6 +86,14 @@ ipcMain.on('download-plugin', (event, { url, id, dist }) => {
 	getZip(url, id, dist)
 		.then(() => {
 			event.reply('plugin-installed', true)
+		})
+		.catch(err => console.log(err))
+})
+
+ipcMain.on('install-gvp', (event, { path: gvpPath, name, dist }) => {
+	extractZip(gvpPath, name, dist)
+		.then(() => {
+			event.reply('gvp-installed', true)
 		})
 		.catch(err => console.log(err))
 })

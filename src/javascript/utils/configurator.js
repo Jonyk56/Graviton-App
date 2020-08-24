@@ -2,6 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import electronStore from 'electron-store'
 import getAppDataPath from 'appdata-path'
+import AppPlatform from 'AppPlatform'
 
 const DEFAULT_STATIC_CONFIGURATION = {
 	config: {
@@ -22,37 +23,40 @@ const DEFAULT_STATIC_CONFIGURATION = {
 		appPlatform: 'auto',
 		appShortcuts: {
 			SaveCurrentFile: {
-				combos: ['Ctrl+S'],
+				combos: ['CmdOrCtrl+S'],
 			},
 			NewPanel: {
-				combos: ['Ctrl+N'],
+				combos: ['CmdOrCtrl+N'],
 			},
 			CloseCurrentTab: {
-				combos: ['Ctrl+T'],
+				combos: ['CmdOrCtrl+T'],
 			},
 			CloseCurrentPanel: {
-				combos: ['Ctrl+L'],
+				combos: ['CmdOrCtrl+L'],
 			},
 			OpenEditorCommandPrompt: {
-				combos: ['Ctrl+I'],
+				combos: ['CmdOrCtrl+I'],
 			},
 			OpenExplorerCommandPrompt: {
-				combos: ['Ctrl+O'],
+				combos: ['CmdOrCtrl+O'],
 			},
 			OpenCommandPrompt: {
-				combos: ['Ctrl+P'],
+				combos: ['CmdOrCtrl+P'],
 			},
 			IterateCurrentPanelTabs: {
-				combos: ['Ctrl+Tab'],
+				combos: ['CmdOrCtrl+Tab'],
 			},
 			IncreaseEditorFontSize: {
-				combos: ['Ctrl+Up', 'Ctrl+ScrollUp'],
+				combos: ['CmdOrCtrl+Up', 'CmdOrCtrl+ScrollUp'],
 			},
 			DecreaseEditorFontSize: {
-				combos: ['Ctrl+Down', 'Ctrl+ScrollDown'],
+				combos: ['CmdOrCtrl+Down', 'CmdOrCtrl+ScrollDown'],
 			},
 			CloseCurrentWindow: {
 				combos: ['Esc'],
+			},
+			CloseApp: {
+				combos: [],
 			},
 		},
 		miscEnableLiveUpdateInManualConfig: true,
@@ -72,6 +76,10 @@ const DEFAULT_STATIC_CONFIGURATION = {
 	},
 }
 
+if (AppPlatform === 'darwin') {
+	DEFAULT_STATIC_CONFIGURATION.data.config.appShortcuts.CloseApp.combos.push('CmdOrCtrl+Q')
+}
+
 function checkObject(object, subProperty, configurationStore, level) {
 	if (level >= 2) return
 	Object.keys(object).map(key => {
@@ -89,7 +97,7 @@ function checkObject(object, subProperty, configurationStore, level) {
 
 function initConfiguration() {
 	const configurationStore = new electronStore()
-	console.log(configurationStore)
+	if (require('electron').remote.process.env.NODE_ENV !== 'test') console.log(configurationStore)
 	checkObject(DEFAULT_STATIC_CONFIGURATION.config, null, configurationStore, 0)
 	const gravitonConfigPath = configurationStore.get('config').appConfigPath
 	const gravitonPluginsPath = path.join(gravitonConfigPath, 'plugins')
